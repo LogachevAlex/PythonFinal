@@ -5,18 +5,18 @@ class Controller:
     def __init__(self, filename): #При создании экземпляра контроллера, он инициализирует модель телефонной книги (PB), загружая контакты из файла filename
         self.phonebook = PB(filename)
 
-    def show_all_contacts(self): #запрашивает список всех контактов из модели и передаёт его в представление для отображения. Если контактов нет, выводится соответствующее сообщение.
+    def show_all_contacts(self): # запрашивает список всех контактов из модели и передаёт его для отображения. Если контактов нет, выводится соответствующее сообщение.
         if self.phonebook.contacts:
             view.display_contacts(self.phonebook.contacts)
         else:
             view.display_message("Phonebook is empty.")
 
-    def add_contact(self):
+    def add_contact(self):  # получает данные для нового контакта от пользователя, добавляет контакт в модель и сохраняет обновлённые данные в файл.
         name, number, comment = view.get_contact_input()
         self.phonebook.add_contact(name, number, comment)
         view.display_message("Contact added successfully.")
 
-    def find_contact(self):
+    def find_contact(self):  # поиск контакта, если контакт не найден, то выдает соответствующее сообщение
         search_term = view.get_search_term()
         found_contacts = self.phonebook.find_contact(search_term)
         if found_contacts:
@@ -24,7 +24,7 @@ class Controller:
         else:
             view.display_message("No contacts found.")
 
-    def update_contact(self):
+    def update_contact(self): # апдейт контакта, сначала реализуется find_contact, если контакт найдет, то реализуется метод выбора, а потом апдейт контакта
         search_term = view.get_search_term()
         found_contacts = self.phonebook.find_contact(search_term)
         if not found_contacts:
@@ -40,7 +40,7 @@ class Controller:
             else:
                 view.display_message("Error updating contact.")
 
-    def delete_contact(self):
+    def delete_contact(self): # удаление контакта, по тому же принципу, что и апдейт
         search_term = view.get_search_term()
         found_contacts = self.phonebook.find_contact(search_term)
         if not found_contacts:

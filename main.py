@@ -2,7 +2,7 @@ from controller import Controller
 import view
 
 def main():
-    controller = Controller('contacts.txt')
+    controller = Controller('contacts.txt') #здесь можно поменять название файла
 
     while True:
         choice = view.get_user_choice()
