@@ -1,63 +1,52 @@
-class ContactModel:
+class Contact:
+    def __init__(self, name, number, comment):
+        self.name = name
+        self.number = number
+        self.comment = comment
+
+    def __str__(self):
+        return f"{self.name};{self.number};{self.comment}"
+
+
+class PB:
     def __init__(self, filename):
         self.filename = filename
+        self.contacts = self.load_contacts()
 
-    def read_contacts(self):
+    def load_contacts(self):
+        contacts = []
         try:
             with open(self.filename, 'r', encoding='utf-8') as file:
-                return [line.strip().split(';') for line in file]
+                for line in file:
+                    name, number, comment = line.strip().split(';')
+                    contacts.append(Contact(name, number, comment))
         except FileNotFoundError:
-            return []
+            pass  # File not found, starting with an empty phonebook
+        return contacts
 
-    def write_contacts(self, contacts):
-        with open(self.filename, 'w',  encoding='utf-8') as file:
-            for contact in contacts:
-                file.write(';'.join(contact) + '\n')
+    def save_contacts(self):
+        with open(self.filename, 'w', encoding='utf-8') as file:
+            for contact in self.contacts:
+                file.write(str(contact) + '\n')
 
     def add_contact(self, name, number, comment):
-        contacts = self.read_contacts()
-        contacts.append([name, number, comment])
-        self.write_contacts(contacts)
+        self.contacts.append(Contact(name, number, comment))
+        self.save_contacts()
 
     def find_contact(self, search_term):
-        contacts = self.read_contacts()
-        return [c for c in contacts if search_term in c[0] or search_term in c[1]]
+        return [contact for contact in self.contacts if search_term.lower() in contact.name.lower() or 
+                search_term in contact.number]
 
-    # def update_contact(self, selected_name, new_name, new_number, new_comment):
-    #     contacts = self.read_contacts()
-    #     found = False
-    #     for i, contact in enumerate(contacts):
-    #         if selected_name.lower() in contact[0].lower():
-    #             contacts[i] = [new_name, new_number, new_comment]
-    #             found = True
-    #             break
-    #     if found:
-    #         self.write_contacts(contacts)
-    #         return True
-    #     else:
-    #         return False
-        
-    def find_contact_with_indices(self, search_term):
-        contacts = self.read_contacts()
-        found_contacts = []
-        indices = []
-        for i, contact in enumerate(contacts):
-            if search_term.lower() in contact[0].lower() or search_term.lower() in contact[1]:
-                found_contacts.append(contact)
-                indices.append(i)
-        return found_contacts, indices
-
-
-    def update_contact_by_index(self, index, new_name, new_number, new_comment):
-        contacts = self.read_contacts()
-        if 0 <= index < len(contacts):
-            contacts[index] = [new_name, new_number, new_comment]
-            self.write_contacts(contacts)
-            return True
-        else:
-            return False
+    def update_contact(self, old_name, new_name, new_number, new_comment):
+        for contact in self.contacts:
+            if contact.name == old_name:
+                contact.name = new_name
+                contact.number = new_number
+                contact.comment = new_comment
+                self.save_contacts()
+                return True
+        return False
 
     def delete_contact(self, name):
-        contacts = self.read_contacts()
-        contacts = [c for c in contacts if c[0] != name]
-        self.write_contacts(contacts)
+        self.contacts = [contact for contact in self.contacts if contact.name != name]
+        self.save_contacts()

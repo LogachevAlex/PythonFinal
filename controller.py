@@ -1,44 +1,53 @@
-class ContactController:
-    def __init__(self, model, view):
-        self.model = model
-        self.view = view
+from model import PB
+import view
 
-    def run(self):
-        while True:
-            self.view.display_menu()
-            choice = self.view.get_choice()
+class Controller:
+    def __init__(self, filename): #При создании экземпляра контроллера, он инициализирует модель телефонной книги (PB), загружая контакты из файла filename
+        self.phonebook = PB(filename)
 
-            if choice == '1':
-                contacts = self.model.read_contacts()
-                self.view.display_contacts(contacts)
-            elif choice == '2':
-                name, number, comment = self.view.get_contact_info()
-                self.model.add_contact(name, number, comment)
-                self.view.show_message("Contact added successfully.")
-            elif choice == '3':
-                search_term = self.view.get_search_term()
-                found_contacts = self.model.find_contact(search_term)
-                self.view.display_contacts(found_contacts)
-            elif choice == '4':
-                search_term = self.view.get_search_term()
-                found_contacts, indices = self.model.find_contact_with_indices(search_term)
-                if found_contacts:
-                    self.view.display_contacts_with_index(found_contacts)
-                    contact_index = int(input("Enter the index of the contact to update: "))
-                    if 0 <= contact_index < len(found_contacts):
-                        real_index = indices[contact_index]
-                        new_name, new_number, new_comment = self.view.get_contact_info()
-                        self.model.update_contact_by_index(real_index, new_name, new_number, new_comment)
-                        self.view.show_message("Contact updated successfully.")
-                    else:
-                        self.view.show_message("Invalid index.")
-                else:
-                    self.view.show_message("No contacts found with the given search term.")
-            elif choice == '5':
-                name = input("Enter the name of the contact to delete: ")
-                self.model.delete_contact(name)
-                self.view.show_message("Contact deleted successfully.")
-            elif choice == '6':
-                break
+    def show_all_contacts(self): #запрашивает список всех контактов из модели и передаёт его в представление для отображения. Если контактов нет, выводится соответствующее сообщение.
+        if self.phonebook.contacts:
+            view.display_contacts(self.phonebook.contacts)
+        else:
+            view.display_message("Phonebook is empty.")
+
+    def add_contact(self):
+        name, number, comment = view.get_contact_input()
+        self.phonebook.add_contact(name, number, comment)
+        view.display_message("Contact added successfully.")
+
+    def find_contact(self):
+        search_term = view.get_search_term()
+        found_contacts = self.phonebook.find_contact(search_term)
+        if found_contacts:
+            view.display_contacts(found_contacts)
+        else:
+            view.display_message("No contacts found.")
+
+    def update_contact(self):
+        search_term = view.get_search_term()
+        found_contacts = self.phonebook.find_contact(search_term)
+        if not found_contacts:
+            view.display_message("No contacts found.")
+            return
+
+        contact_index = view.choose_contact(found_contacts)
+        if contact_index is not None:
+            old_name = found_contacts[contact_index].name
+            new_name, new_number, new_comment = view.get_contact_input()
+            if self.phonebook.update_contact(old_name, new_name, new_number, new_comment):
+                view.display_message("Contact updated successfully.")
             else:
-                self.view.show_message("Invalid choice, please try again.")
+                view.display_message("Error updating contact.")
+
+    def delete_contact(self):
+        search_term = view.get_search_term()
+        found_contacts = self.phonebook.find_contact(search_term)
+        if not found_contacts:
+            view.display_message("No contacts found.")
+            return
+
+        contact_index = view.choose_contact(found_contacts)
+        if contact_index is not None:
+            self.phonebook.delete_contact(found_contacts[contact_index].name)
+            view.display_message("Contact deleted successfully.")
